@@ -8,29 +8,41 @@ int const squareLocations[] = {0,0, 0,3, 0,6, 3,0, 3,3, 3,6, 6,0, 6,3, 6,6};
 
 
 // helper functions
-int 	integerify(char a);					// turn a char number into an int
-void 	printBoard();						// print out board
-int 	columnOffset(int column);			
-bool 	checkCompletion();					// check if entire board is filled in
-int 	getSquare(int row, int column);
-void 	increment(int* row, int* column);
-void 	decrement(int* row, int* column);
+int 	integerify(char a);								// turn a char number into an int
+void 	printBoard();									// print out board
+int 	columnOffset(int column);						// return column offset for crosshatching
+bool 	checkCompletion();								// check if entire board is filled in
+int 	getSquare(int row, int column);					// return square based on row and column
+void 	increment(int* row, int* column);				// function to increment rows and columns
+void 	decrement(int* row, int* column);				// function to decrement rows and columns
+bool	checkColumnForNumber(int column, char number);	// check if 'number' is found in the column
+bool 	checkRowForNumber(int row, char number);		// check if 'number' is found in the row
+bool 	checkSquareForNumber(int square, char number);	// check if 'number' is found in the square
 
-
-bool	checkColumnForNumber(int column, char number);
-bool 	checkRowForNumber(int row, char number);
-bool 	checkSquareForNumber(int square, char number);
-
+// crosshatching
 bool 	crosshatch();
 bool 	crosshatchNumberInSquare(int square, char num);
 
+// backtracking
 void 	backtrack();
 bool 	checkIfValid(char num, int row, int col);
 
+// simple columns
+bool 	checkColumnsSimple();
+int 	checkColumnsForSingleMissing();
 
+// simple rows
+bool 	checkRowsSimple();
+int 	checkRowsForSingleMissing();
 
+// simple squares
+bool 	checkSquares();
+int 	checkSquaresForSingleMissing();
+void 	fillInSquare(int square);
+bool 	checkSquareAlmostFull(int row, int column);
 
-bool 	solve();							// function which calls other functions until puzzle solved
+// handles using the different methods
+bool 	solve();				
 
 
 
@@ -39,7 +51,6 @@ bool 	solve();							// function which calls other functions until puzzle solved
 
 
 int main( int argc, char *argv[] ) {
-	//cout << "number of inputs is " << argc - 1 << endl;
 
 	// check if input is a full board worth of values ('-' means blank)
 	if( (argc - 1) !=  NUMSQUARES) {
@@ -70,10 +81,10 @@ bool solve() {
 	while( true ) {
 		if ( crosshatch() ) {}
 		else if ( checkCompletion() ) { return true; }
-		//else return false;
+		else if ( checkRowsSimple() ) {}
+		else if ( checkColumnsSimple() ) {}
+		else if ( checkSquares() ) {}
 		else { backtrack(); break; }
-		//backtrack();
-		cout << "one iteration" << endl;
 	}
 
 	if ( checkCompletion() ) { return true; }
@@ -82,9 +93,6 @@ bool solve() {
 
 
 void backtrack() {
-	cout << "the board before bactracking is:" << endl;
-	printBoard();
-
 	char originalBoard[9][9];
 
 	for(int i = 0; i < 9; i++) {
@@ -119,7 +127,6 @@ void backtrack() {
 			foundErrorOnThisPath = false;
 			bool found = false;
 			for(char a = board[row][col]; a <= '9'; a += 1) {
-				cout << "updating space using: " << a << " at " << row << ", " << col << endl;
 				if( checkIfValid(a, row, col) ) {
 					board[row][col] = a;
 					found = true;
@@ -139,9 +146,7 @@ void backtrack() {
 
 		else {
 			bool found = false;
-			printBoard();
 			for(char a = '1'; a <= '9'; a += 1) {
-				cout << "testing new space: trying " << a << " at " << row << ", " << col << endl;
 				if( checkIfValid(a, row, col) ) {
 					board[row][col] = a;
 					found = true;
@@ -154,9 +159,7 @@ void backtrack() {
 				foundErrorOnThisPath = true;
 			}
 			else {
-				cout << "found working solution for " << row << "," << col;
 				increment(&row, &col);
-				cout << " now searching at " << row << "," << col << endl;
  				foundErrorOnThisPath = false;
 			}
 		}
@@ -353,7 +356,133 @@ void printBoard() {
 
 
 
+int checkColumnsForSingleMissing() {
+	for(int i = 0; i < 9; i++) {
+		int count = 0;
+		for(int k = 0; k < 9; k++) {
+			if( board[k][i] != '-' ) {
+				count++;
+			}
+		}
+		if( count == 8){
+			return i;
+		}
+	}
+	return -1;
+}
 
+int checkRowsForSingleMissing() {
+	for(int i = 0; i < 9; i++) {
+		int count = 0;
+		for(int k = 0; k < 9; k++) {
+			if( board[i][k] != '-' ) {
+				count++;
+			}
+		}
+		if( count == 8){
+			return i;
+		}
+	}
+	return -1;
+}
+
+bool checkColumnsSimple() {
+	int column = checkColumnsForSingleMissing();
+	if( column != -1 ) {
+		int count = 0;
+		int position = -1;
+		for(int i = 0; i < 9; i++) {
+			if( board[i][column] != '-') {
+				count += integerify(board[i][column]);
+			}
+			else {
+				position = i;
+			}
+		}
+		int number = (total - count);
+		cout << "the number is " << number;
+		board[position][column] = '0' + number;
+		return true;
+	}
+	return false;
+}
+
+bool checkRowsSimple() {
+	int row = checkRowsForSingleMissing();
+	if( row != -1 ) {
+		int count = 0;
+		int position = -1;
+		for(int i = 0; i < 9; i++) {
+			if( board[row][i] != '-') {
+				count += integerify(board[row][i]);
+			}
+			else {
+				position = i;
+			}
+		}
+		int number = (total - count);
+		board[row][position] = '0' + number;
+		return true;
+	}
+	return false;
+}
+
+int checkSquaresForSingleMissing() {
+	int count = 0;
+	for(int i = 0; i < 18; i += 2) {
+		if( checkSquareAlmostFull(squareLocations[i], squareLocations[i + 1]) ) {
+			return count;
+		}
+		count++;
+	}
+	return -1;
+}	
+
+bool checkSquares() {
+	int square = checkSquaresForSingleMissing();
+	if( square == -1 ) {
+		return false;
+	}
+	else {
+		fillInSquare(square);
+		return true;
+	}
+
+}
+
+void fillInSquare(int square) {
+	int count = 0;
+	int row = squareLocations[2 * square];
+	int column = squareLocations[2 * square + 1];
+	int position_row;
+	int position_column;
+	for(int i = 0; i < 3; i++) {
+		for(int k = 0; k < 3; k++) {
+			if( board[row + i][column + k] != '-' ) {
+				count += integerify(board[row + i][column + k]);
+			}	
+			else {
+				position_row = row + i;
+				position_column = column + k;
+			}		
+		}
+	}
+	char answer = '0' + (total - count);
+	board[position_row][position_column] = answer;
+}
+
+bool checkSquareAlmostFull(int row, int column) {
+	int count = 0;
+	for(int i = 0; i < 3; i++) {
+		for(int k = 0; k < 3; k++) {
+			if( board[row + i][column + k] != '-' ) {
+				count++;
+			}			
+		}
+	}
+	if( count == 8 ) { return true; }
+	else { return false; }
+}
 
 
 
