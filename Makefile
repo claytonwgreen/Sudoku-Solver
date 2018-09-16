@@ -12,5 +12,5 @@ sudoku_solver.o :
 
 clean : 
 	rm *.o
-	rm solve
-	rm a.out
+	rm ./solve
+	rm ./a.out
