@@ -3,10 +3,15 @@
 
 using namespace std;
 
-int const NUMSQUARES = 81; 	// sudoku is played on a 9x9 grid which has 81 squares
 char board[9][9];			// global board that all functions access (can keep global cuz is only 81 chars)
 int const total = 45;		// used for telling which number is missing in a row or column (1 + 2 + ... + 9 = 45)
-int const squareLocations[] = {0,0, 0,3, 0,6, 3,0, 3,3, 3,6, 6,0, 6,3, 6,6};
+int const squareLocations[] = {0,0, 0,3, 0,6, 3,0, 3,3, 3,6, 6,0, 6,3, 6,6}; // used for finding locations of squares
+bool single = false;		// flag if only looking for one square, not whole solution
+int singleRow;				// row of single square answer is needed for
+int singleCol;				// column of single square answer is needed for
+
+// setting up board
+bool 	setup();
 
 // crosshatching
 bool 	crosshatch();
@@ -48,110 +53,8 @@ bool 	checkIfValid(char num, int row, int col);		// check if 'number' is allowed
 void 	removeSpaces(string str);
 
 
-int main( int argc, char *argv[] ) {
-	int singleRow;
-	int singleCol;
-	bool single = false;
-	string response;
-
-	cout << "Would you like the solution the whole puzzle? (y/n)" << endl;
-	cin >> response;
-	if( response == "y" || response == "yes" ) {}
-	else {
-		single = true;
-		cout << "So you would like to know the number that goes a specific square? (y/n)" << endl;
-		cin >> response;
-		if( response == "y" || response == "yes" ) {}
-		else { cout << "Well those are the only two things I can do. Goodbye" << endl; return 0; }
-	}
-
-	cout << endl << "You will now input the sudoku board row by row." << endl << "For empty squares, put a '-' character." << endl;
-	if( single ) { cout << "For the square you want the number for, put an 'X' character" << endl << "An example of one row of input: \"2--1-X-8-\"" << endl; }
-	else { cout << "An example of one row of input: \"2--1---8-\"" << endl; }
-
-	bool foundX = false;
-	for(int i = 0; i < 9; i++) {
-		bool correctNum = true;
-		string res;
-		while ( correctNum ) {
-			cout << endl << "Please input values for row " << (i + 1) << " below:" << endl;
-			cin >> res;
-			if( res.size() != 9 ) {
-				cout << "Uh oh! Incorrect number of input values. Please try again";
-			}
-			else { correctNum = false; }
-		}
-		for(int k = 0; k < 9; k++) {
-			char a = res[k];
-			if( (a < '0' || a > '9') && a != '-' && a != 'X' ) {
-				cout << "Uh oh! Seems like you've input an invalid character. Please try again" << endl;
-				i--;
-				break;
-			} 
-			else {
-				if( a == 'X' ) {
-					singleRow = i;
-					singleCol = k;
-					board[i][k] = '-';
-					foundX = true;
-				}
-				else { board[i][k] = a; }
-			}
-		}
-	}
-
-	if( (!foundX) && single ) {
-		cout << "Uh oh! Seems like you haven't placed an 'X' in the playing board." << endl;
-		bool valid = true;
-		while( valid ) {
-			cout << "In which row is the square that you would like the answer to?" << endl;
-			cin >> singleRow;
-			cout <<  "In which column is the square that you would like the answer to?" << endl;
-			cin >> singleCol;
-			singleCol--;
-			singleRow--;
-			if( singleRow < 0 || singleRow > 8 || singleCol < 0 || singleCol > 8 ) {
-				cout << "Uh oh! That isn't a valid location. Please try again." << endl;
-			}
-			else { 
-				valid = false; 
-			}
-		}
-	}
-
-	printBoard();
-
-	bool correct = true;
-	response = "";
-	cout << "Is the above board correct? (y/n)" << endl;
-	cin >> response;
-	int row, col;
-	char num;
-	if( response == "y" || response == "yes" ) { correct = false; }
-	else { cout << "You will now indicate which squares are incorrect" << endl; }
-	while( correct ) {
-		cout << "In which row is the value incorrect?" << endl;
-		cin >> row;
-		cout <<  "In which column is the value incorrect?" << endl;
-		cin >> col;
-		if( row < 1 || row > 9 || col < 1 || col > 9 ) {
-			cout << "Uh oh! That isn't a valid location. Please try again." << endl;
-			continue;
-		}
-		cout << "What value should be in the square at row " << row << " and column " << col << "?" << endl;
-		cin >> num;
-		if( (num < '0' || num > '9') && num != '-' && num != 'X' ) {
-			cout << "Uh oh! That isn't a valid character. Please try again." << endl;
-			continue;
-		}
-		board[row - 1][col - 1] = num;
-		printBoard();
-		cout << "Is the board now setup correctly? (y/n)" << endl;
-		cin >> response;
-		if( response == "y" || response == "yes" ) { correct = false; }
-	}
-
-	cout << endl;
+int main() {
+	if( !setup() ) { return 1; }
 
 	if( solve() ) {
 		if( single ) {
@@ -426,6 +329,109 @@ void backtrack() {
 	}
 }
 
+bool setup() {
+	string response;
+
+	cout << "Would you like the solution the whole puzzle? (y/n)" << endl;
+	cin >> response;
+	if( response == "y" || response == "yes" ) {}
+	else {
+		single = true;
+		cout << "So you would like to know the number that goes a specific square? (y/n)" << endl;
+		cin >> response;
+		if( response == "y" || response == "yes" ) {}
+		else { cout << "Well those are the only two things I can do. Goodbye" << endl; return false; }
+	}
+
+	cout << endl << "You will now input the sudoku board row by row." << endl << "For empty squares, put a '-' character." << endl;
+	if( single ) { cout << "For the square you want the number for, put an 'X' character" << endl << "An example of one row of input: \"2--1-X-8-\"" << endl; }
+	else { cout << "An example of one row of input: \"2--1---8-\"" << endl; }
+
+	bool foundX = false;
+	for(int i = 0; i < 9; i++) {
+		bool correctNum = true;
+		string res;
+		while ( correctNum ) {
+			cout << endl << "Please input values for row " << (i + 1) << " below:" << endl;
+			cin >> res;
+			if( res.size() != 9 ) {
+				cout << "Uh oh! Incorrect number of input values. Please try again";
+			}
+			else { correctNum = false; }
+		}
+		for(int k = 0; k < 9; k++) {
+			char a = res[k];
+			if( (a < '0' || a > '9') && a != '-' && a != 'X' ) {
+				cout << "Uh oh! Seems like you've input an invalid character. Please try again" << endl;
+				i--;
+				break;
+			} 
+			else {
+				if( a == 'X' ) {
+					singleRow = i;
+					singleCol = k;
+					board[i][k] = '-';
+					foundX = true;
+				}
+				else { board[i][k] = a; }
+			}
+		}
+	}
+
+	if( (!foundX) && single ) {
+		cout << "Uh oh! Seems like you haven't placed an 'X' in the playing board." << endl;
+		bool valid = true;
+		while( valid ) {
+			cout << "In which row is the square that you would like the answer to?" << endl;
+			cin >> singleRow;
+			cout <<  "In which column is the square that you would like the answer to?" << endl;
+			cin >> singleCol;
+			singleCol--;
+			singleRow--;
+			if( singleRow < 0 || singleRow > 8 || singleCol < 0 || singleCol > 8 ) {
+				cout << "Uh oh! That isn't a valid location. Please try again." << endl;
+			}
+			else { 
+				valid = false; 
+			}
+		}
+	}
+
+	printBoard();
+
+	bool correct = true;
+	response = "";
+	cout << "Is the above board correct? (y/n)" << endl;
+	cin >> response;
+	int row, col;
+	char num;
+	if( response == "y" || response == "yes" ) { correct = false; }
+	else { cout << "You will now indicate which squares are incorrect" << endl; }
+	while( correct ) {
+		cout << "In which row is the value incorrect?" << endl;
+		cin >> row;
+		cout <<  "In which column is the value incorrect?" << endl;
+		cin >> col;
+		if( row < 1 || row > 9 || col < 1 || col > 9 ) {
+			cout << "Uh oh! That isn't a valid location. Please try again." << endl;
+			continue;
+		}
+		cout << "What value should be in the square at row " << row << " and column " << col << "?" << endl;
+		cin >> num;
+		if( (num < '0' || num > '9') && num != '-' && num != 'X' ) {
+			cout << "Uh oh! That isn't a valid character. Please try again." << endl;
+			continue;
+		}
+		board[row - 1][col - 1] = num;
+		printBoard();
+		cout << "Is the board now setup correctly? (y/n)" << endl;
+		cin >> response;
+		if( response == "y" || response == "yes" ) { correct = false; }
+	}
+	cout << endl;
+	return true;
+}
+
 bool solve() {
 	while( true ) {
 		if ( crosshatch() ) {}
@@ -458,9 +464,6 @@ bool checkCorrectCompletion() {
 	return true;
 }
 
-
-
-
 void increment(int* row, int* column) {
 	*column += 1;
 	if( *column == 9 ) {
@@ -486,22 +489,6 @@ bool checkIfValid(char num, int row, int col) {
 		return true;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 bool checkColumnForNumber(int column, char number) {
 	for(int i = 0; i < 9; i++) {
@@ -578,6 +565,7 @@ bool checkCompletion() {
 }
 
 void printBoard() {
+	int const NUMSQUARES = 81; 	// sudoku is played on a 9x9 grid which has 81 squares
 	cout << endl << "-------------------------------------" << endl << "| ";
 	for(int i = 0; i < NUMSQUARES; i++) {
 		int row = i/9;
