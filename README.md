@@ -16,4 +16,4 @@ make
 ./solve
 ```
 
-- Follow prompts for inputting the puzzle and solving or just getting a hint
+- Follow prompts for inputting the puzzle and chosing to solve or just get a hint
