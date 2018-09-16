@@ -15,3 +15,5 @@ make
 ```bash
 ./solve
 ```
+
+- Follow prompts for inputting the puzzle and solving or just getting a hint
