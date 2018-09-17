@@ -56,8 +56,9 @@ void 	removeSpaces(string str);
 
 
 int main() {
-	if( !setup() ) { return 1; }
+	if( !setup() ) { return 1; } // get board inputted from user, return if doesn't work
 
+	// try to solve and 
 	if( solve() ) {
 		if( single ) {
 			cout << "the number at row " << singleRow + 1 << " , column " << singleCol + 1 << " is " << board[singleRow][singleCol] << endl << endl;
@@ -73,6 +74,7 @@ int main() {
 	}
 }
 
+// will use the crosshatching tactic which humans use to solve sudoku to simplify board before using random backtracking algorithm
 bool crosshatch() {
 	bool worked = false;
 	for(int i = 0; i < 9; i++) {
@@ -127,6 +129,7 @@ bool crosshatchNumberInSquare(int square, char num) {
 	}
 }
 
+// check if any columns have 8 out of 9 values solved, and then solve final if so 
 bool checkColumnsSimple() {
 	int column = checkColumnsForSingleMissing();
 	if( column != -1 ) {
@@ -163,8 +166,7 @@ int checkColumnsForSingleMissing() {
 	return -1;
 }
 
-
-
+// check if any rows have 8 out of 9 values solved, and then solve final if so 
 bool checkRowsSimple() {
 	int row = checkRowsForSingleMissing();
 	if( row != -1 ) {
@@ -200,6 +202,7 @@ int checkRowsForSingleMissing() {
 	return -1;
 }
 
+// check if any squares have 8 out of 9 values solved, and then solve final if so 
 bool checkSquares() {
 	int square = checkSquaresForSingleMissing();
 	if( square == -1 ) {
@@ -256,6 +259,7 @@ void fillInSquare(int square) {
 	board[position_row][position_column] = answer;
 }
 
+// random algorithm that uses DFS to serach for correct solution
 void backtrack() {
 	char originalBoard[9][9];
 
@@ -331,6 +335,7 @@ void backtrack() {
 	}
 }
 
+// taking in board and asking user what they want returned 
 bool setup() {
 	string response;
 	bool random;
@@ -607,14 +612,10 @@ void ClearScreen() {
 
 void removeSpaces(string str)
 {
-    // To keep track of non-space character count
     int count = 0;
- 
-    // Traverse the given string. If current character
-    // is not space, then place it at index 'count++'
     for (int i = 0; str[i]; i++)
         if (str[i] != ' ')
-            str[count++] = str[i]; // here count is incremented
+            str[count++] = str[i]; 
     str[count] = '\0';
 }
 
