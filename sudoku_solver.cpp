@@ -1,5 +1,7 @@
 #include<iostream>
 #include<string>
+#include<stdlib.h>
+#include<ctime>
 
 using namespace std;
 
@@ -58,7 +60,7 @@ int main() {
 
 	if( solve() ) {
 		if( single ) {
-			cout << "the number at row " << singleRow + 1 << " , column " << singleCol + 1 << " is " << board[singleRow][singleCol] << endl;
+			cout << "the number at row " << singleRow + 1 << " , column " << singleCol + 1 << " is " << board[singleRow][singleCol] << endl << endl;
 		}
 		else {
 			cout << "the finished board is:" << endl;
@@ -331,6 +333,8 @@ void backtrack() {
 
 bool setup() {
 	string response;
+	bool random;
+	srand(time(NULL));
 
 	cout << "Would you like the solution the whole puzzle? (y/n)" << endl;
 	cin >> response;
@@ -339,12 +343,18 @@ bool setup() {
 		single = true;
 		cout << "So you would like to know the number that goes a specific square? (y/n)" << endl;
 		cin >> response;
-		if( response == "y" || response == "yes" ) {}
+		if( response == "y" || response == "yes" ) {
+			cout << "Would you like it to be a random hint (as opposed to a specific square you want to specify)? (y/n)" << endl;
+			cin >> response;
+			if( response == "y" || response == "yes" ) {
+				random = true;
+			}
+		}
 		else { cout << "Well those are the only two things I can do. Goodbye" << endl; return false; }
 	}
 
 	cout << endl << "You will now input the sudoku board row by row." << endl << "For empty squares, put a '-' character." << endl;
-	if( single ) { cout << "For the square you want the number for, put an 'X' character" << endl << "An example of one row of input: \"2--1-X-8-\"" << endl; }
+	if( single && (!random) ) { cout << "For the square you want the number for, put an 'X' character" << endl << "An example of one row of input: \"2--1-X-8-\"" << endl; }
 	else { cout << "An example of one row of input: \"2--1---8-\"" << endl; }
 
 	bool foundX = false;
@@ -378,7 +388,14 @@ bool setup() {
 		}
 	}
 
-	if( (!foundX) && single ) {
+	if( random ) {
+		do {
+			singleRow = rand() % 9;
+			singleCol = rand() % 9;
+			cout << "row is " << singleRow << " and col is " << singleCol << endl;
+		} while ( board[singleRow ][singleCol ] != '-' );
+	}
+	else if( (!foundX) && single ) {
 		cout << "Uh oh! Seems like you haven't placed an 'X' in the playing board." << endl;
 		bool valid = true;
 		while( valid ) {
