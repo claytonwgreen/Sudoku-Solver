@@ -591,7 +591,14 @@ void printBoard() {
 	cout << endl << "-------------------------------------" << endl << "| ";
 	for(int i = 0; i < NUMSQUARES; i++) {
 		int row = i/9;
-		cout << board[row][(i - (row * 9))]; 
+		char number = board[row][(i - (row * 9))];
+		if( number == '-'){
+			cout << ' ';
+		}
+		else {
+			cout << number;
+		}
+		// cout << board[row][(i - (row * 9))]; 
 		if( i - (row * 9) == 8) {
 			if( i == 80) {
 				cout << " |" << endl << "-------------------------------------" << endl << endl;
